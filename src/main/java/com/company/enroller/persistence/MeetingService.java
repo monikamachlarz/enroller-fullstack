@@ -70,4 +70,57 @@ public class MeetingService {
         return query.list().size() != 0;
     }
 
+    public void getParticipants(Long meetingId) {
+        Meeting meeting = session.get(Meeting.class, meetingId);
+        if (meeting == null) {
+            throw new IllegalArgumentException("Meeting not found");
+        }
+        meeting.getParticipants();
+    }
+
+    public void addParticipantToMeeting(Long meetingId, String login) {
+        Transaction transaction = session.beginTransaction();
+
+        Meeting meeting = session.get(Meeting.class, meetingId);
+//        Participant participant
+//                = session
+//                .createQuery("FROM Participant WHERE login=:login", Participant.class)
+//                .setParameter("login", login)
+//                .uniqueResult();
+
+        ParticipantService participantService = new ParticipantService();
+        Participant participant = participantService.findByLogin(login);
+
+        System.out.println("Participant added " + participant+ " Meeting " + meeting);
+        if (meeting == null || participant == null) {
+            transaction.rollback();
+            throw new IllegalArgumentException("Meeting or participant not found");
+        }
+
+        meeting.getParticipants().add(participant);
+        session.merge(meeting);
+
+        transaction.commit();
+    }
+
+    public void removeParticipantFromMeeting(Long meetingId, String login) {
+        Transaction transaction = session.getSession().beginTransaction();
+
+        Meeting meeting = session.get(Meeting.class, meetingId);
+        Participant participant = session
+                .createQuery("FROM Participant WHERE login = :login", Participant.class)
+                .setParameter("login", login)
+                .uniqueResult();
+
+        if (meeting == null || participant == null) {
+            transaction.rollback();
+            throw new IllegalArgumentException("Meeting or participant not found");
+        }
+
+        meeting.getParticipants().remove(participant);
+        session.merge(meeting);
+
+        transaction.commit();
+    }
+
 }

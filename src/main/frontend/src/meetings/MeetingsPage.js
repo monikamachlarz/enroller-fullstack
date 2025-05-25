@@ -21,16 +21,17 @@ export default function MeetingsPage({username}) {
         const response = await fetch('/api/meetings', {
             method: 'POST',
             body: JSON.stringify(meeting),
-            headers: { 'Content-Type': 'application/json' }
+            headers: {'Content-Type': 'application/json'}
         });
         if (response.ok) {
-            const newMeeting  = await response.json();
+            const newMeeting = await response.json();
             const nextMeetings = [...meetings, newMeeting];
             setMeetings(nextMeetings);
             setAddingNewMeeting(false);
         }
 
     }
+
     async function handleDeleteMeeting(meeting) {
         const response = await fetch(`/api/meetings/${meeting.id}`, {
             method: 'DELETE',
@@ -42,10 +43,17 @@ export default function MeetingsPage({username}) {
 
     }
 
-    // function handleDeleteMeeting(meeting) {
-    //     const nextMeetings = meetings.filter(m => m !== meeting);
-    //     setMeetings(nextMeetings);
-    // }
+    async function handleAddParticipant(meeting) {
+        const response = await fetch(`/api/meetings/${meeting.id}/participants`, {
+            method: 'POST',
+            body: JSON.stringify({login: username}),
+            headers: {'Content-Type': 'application/json'}
+        });
+        if (response.ok) {
+
+            setAddingNewMeeting(false);
+        }
+    }
 
     return (
         <div>
@@ -57,7 +65,8 @@ export default function MeetingsPage({username}) {
             }
             {meetings.length > 0 &&
                 <MeetingsList meetings={meetings} username={username}
-                              onDelete={handleDeleteMeeting}/>}
+                              onDelete={handleDeleteMeeting}
+                              onAdd={handleAddParticipant}/>}
         </div>
     )
 }

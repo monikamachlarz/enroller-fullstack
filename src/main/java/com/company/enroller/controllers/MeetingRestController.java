@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/meetings")
@@ -75,5 +76,23 @@ public class MeetingRestController {
         meeting.setId(currentMeeting.getId());
         meetingService.update(meeting);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{id}/participants", method = RequestMethod.GET)
+    public ResponseEntity<Set<Participant>> getParticipants(@PathVariable Long id) {
+        meetingService.getParticipants(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{id}/participants", method = RequestMethod.POST)
+    public ResponseEntity<String> addParticipantToMeeting(@PathVariable Long id, @RequestBody String login) {
+        meetingService.addParticipantToMeeting(id, login);
+        return ResponseEntity.ok("Participant added");
+    }
+
+    @RequestMapping(value = "/{id}/participants/{login}", method = RequestMethod.DELETE)
+    public ResponseEntity<String> removeParticipantFromMeeting(@PathVariable Long id, @PathVariable String login) {
+        meetingService.removeParticipantFromMeeting(id, login);
+        return ResponseEntity.ok("Participant removed");
     }
 }
