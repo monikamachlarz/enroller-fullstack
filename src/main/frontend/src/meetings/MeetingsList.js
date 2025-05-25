@@ -5,6 +5,8 @@ export default function MeetingsList({meetings, onDelete}) {
             <tr>
                 <th>Nazwa spotkania</th>
                 <th>Opis</th>
+                <th>Akcje</th>
+
             </tr>
             </thead>
             <tbody>
