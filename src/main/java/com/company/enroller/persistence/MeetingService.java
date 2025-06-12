@@ -5,12 +5,16 @@ import com.company.enroller.model.Participant;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
 @Component("meetingService")
 public class MeetingService {
+
+    @Autowired
+    private ParticipantService participantService;
 
     Session session;
 
@@ -78,18 +82,11 @@ public class MeetingService {
         meeting.getParticipants();
     }
 
-    public void addParticipantToMeeting(Long meetingId, String login) {
-        Transaction transaction = session.beginTransaction();
+    public void addParticipantToMeeting(Long meetingId, Participant participant) {
+        Transaction transaction = session.getSession().beginTransaction();
 
         Meeting meeting = session.get(Meeting.class, meetingId);
-//        Participant participant
-//                = session
-//                .createQuery("FROM Participant WHERE login=:login", Participant.class)
-//                .setParameter("login", login)
-//                .uniqueResult();
-
-        ParticipantService participantService = new ParticipantService();
-        Participant participant = participantService.findByLogin(login);
+        participant = participantService.findByLogin(participant.getLogin());
 
         System.out.println("Participant added " + participant+ " Meeting " + meeting);
         if (meeting == null || participant == null) {
@@ -103,23 +100,21 @@ public class MeetingService {
         transaction.commit();
     }
 
-    public void removeParticipantFromMeeting(Long meetingId, String login) {
+
+    public void removeParticipantFromMeeting(Long meetingId, Participant participant) {
         Transaction transaction = session.getSession().beginTransaction();
 
         Meeting meeting = session.get(Meeting.class, meetingId);
-        Participant participant = session
-                .createQuery("FROM Participant WHERE login = :login", Participant.class)
-                .setParameter("login", login)
-                .uniqueResult();
+        participant = participantService.findByLogin(participant.getLogin());
 
-        if (meeting == null || participant == null) {
-            transaction.rollback();
-            throw new IllegalArgumentException("Meeting or participant not found");
+        if (participant == null) {
+            throw new IllegalArgumentException("Participant not found");
         }
-
-        meeting.getParticipants().remove(participant);
+        boolean removed = meeting.getParticipants().remove(participant);
+        if (!removed) {
+            throw new IllegalStateException("Participant is not part of the meeting");
+        }
         session.merge(meeting);
-
         transaction.commit();
     }
 
